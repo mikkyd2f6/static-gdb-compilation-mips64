@@ -237,6 +237,7 @@ build_gdb() {
     esac
 
     log "Building GDB $GDB_VERSION for $T ($variant)"
+    [ -x "$out" ] && { log "$out already built"; return; }
     mkdir -p "$bdir"
     cd "$bdir"
 
@@ -269,18 +270,24 @@ build_gdb() {
 # --------------------------------------------------------------------------
 verify() {
     log "Results"
-    local b t variant QEMU
-    shopt -s nullglob
-    for b in "$DIST"/gdb-*-static-*; do
-        file "$b" | sed 's/^/  /'
-        case "$b" in *-mips64el-*) QEMU=qemu-mips64el-static ;; *) QEMU=qemu-mips64-static ;; esac
-        timeout 120 "$QEMU" "$b" --version | head -1 | sed 's/^/  /'
-        if [[ "$b" == *-static-python ]]; then
-            timeout 300 "$QEMU" "$b" -batch \
-                -ex 'python import sys; print("  embedded:", sys.version.split()[0])' || true
-        fi
+    local t variant short QEMU b
+    for t in $TRIPLETS; do
+        short=${t%%-*}
+        case "$t" in
+            mips64el-*) QEMU=qemu-mips64el-static ;;
+            *)          QEMU=qemu-mips64-static ;;
+        esac
+        for variant in $VARIANTS; do
+            b="$DIST/gdb-$GDB_VERSION-$short-static-$variant"
+            [ -e "$b" ] || continue
+            file "$b" | sed 's/^/  /'
+            timeout 120 "$QEMU" "$b" --version | head -1 | sed 's/^/  /'
+            if [ "$variant" = python ]; then
+                timeout 300 "$QEMU" "$b" -batch \
+                    -ex 'python import sys; print("  embedded:", sys.version.split()[0])' || true
+            fi
+        done
     done
-    shopt -u nullglob
 }
 
 main() {
