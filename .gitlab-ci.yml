@@ -1,0 +1,28 @@
+# Builds all four static MIPS64 GDB variants and exposes them as job artifacts.
+# Requires a runner with Docker support.
+
+stages:
+  - build
+
+build-static-gdb-mips64:
+  stage: build
+  image: ubuntu:24.04
+  variables:
+    DEBIAN_FRONTEND: noninteractive
+  before_script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends
+        build-essential curl ca-certificates xz-utils
+        libgmp-dev libmpfr-dev libexpat1-dev zlib1g-dev libncurses-dev texinfo
+        gcc-14-mips64-linux-gnuabi64 g++-14-mips64-linux-gnuabi64
+        libc6-dev-mips64-cross binutils-mips64-linux-gnuabi64
+        gcc-14-mips64el-linux-gnuabi64 g++-14-mips64el-linux-gnuabi64
+        libc6-dev-mips64el-cross binutils-mips64el-linux-gnuabi64
+        qemu-user-static
+  script:
+    - bash build.sh
+  artifacts:
+    name: "static-gdb-mips64-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - dist/
+    expire_in: 30 days
