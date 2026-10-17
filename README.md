@@ -118,23 +118,6 @@ qemu-mips64el-static ./dist/gdb-16.3-mips64el-static-nopython \
 Build layout (all gitignored): `src/`, `deps/` (host + cross Pythons and
 libraries), `build-*/`, `install/`, `dist/`.
 
-## CI
-
-`.gitlab-ci.yml` builds all four variants on push and exposes `dist/` as job
-artifacts (an `ubuntu:24.04` image installing its own toolchains and qemu in
-`before_script`).
-
-## Publishing this repo
-
-After creating the project on GitLab:
-
-```bash
-git remote add origin git@gitlab.com:<user>/static-gdb-mips64.git
-git push -u origin main
-```
-
-Prefer attaching `dist/` binaries to a GitLab **Release** over committing them.
-
 ## License
 
 GDB is GPLv3; statically-linked GDB binaries are derivative works, so if you
